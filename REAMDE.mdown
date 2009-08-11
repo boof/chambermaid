@@ -1,0 +1,4 @@
+Chambermaid
+===========
+
+Mapper between Git repositories and Ruby objects.
