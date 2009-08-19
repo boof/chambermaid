@@ -49,5 +49,8 @@ class TestChambermaid < Test::Unit::TestCase
       :headline => 'Headline',
       :url => URI('http://slashdot.org/')
   end
+  def test_missing_attribute_raises_attribute_error
+    assert_raises(NameError) { page.undefined }
+  end
 
 end

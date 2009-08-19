@@ -22,13 +22,11 @@ class Chambermaid::Diary::About
   end
 
   def [](attribute)
-    @attributes[ attribute ] or raise NoMethodError, attribute.to_s
+    @attributes[ attribute ] or
+        raise NameError, "attribute #{ attribute } is not defined"
   end
   def reading(attribute)
     @attributes[attribute].reading
-  end
-  def reading(attribute)
-    @attributes[attribute].writing
   end
 
   def draft
