@@ -17,17 +17,12 @@ module Grit
   end
 end
 
-class TestChambermaid < Test::Unit::TestCase
+Grit::Repo.init('teasers/0').instance_eval do
+  add '.'
+  commit_index 'Make files available...'
+end unless File.exists? 'teasers/0/.git'
 
-  def setup
-    Grit::Repo.init('teasers/0').instance_eval do
-      add '.'
-      commit_index 'Hossa'
-    end
-  end
-  def teardown
-    FileUtils.rm_r 'teasers/0/.git'
-  end
+class TestChambermaid < Test::Unit::TestCase
 
   def assert_attributes(obj, attrs)
     attrs.each { |attr, expect| assert_equal expect, obj.__send__(attr) }

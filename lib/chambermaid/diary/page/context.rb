@@ -7,7 +7,7 @@ class Chambermaid::Diary::Page::Context
   end
 
   def value
-    @value ||= attribute[ self ]
+    @value ||= @attribute[ self ]
   end
   def value=(value)
     raise NotImplementedError

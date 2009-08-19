@@ -2,36 +2,32 @@ class Chambermaid::Diary::About
   autoload :Draft, __FILE__.insert(-4, '/draft')
   autoload :Reader, __FILE__.insert(-4, '/readers')
   autoload :CachedReader, __FILE__.insert(-4, '/readers')
-  class << self
-    attr_accessor :reader
-  end
+
+  class << self; attr_accessor :reader end
   self.reader = Reader
 
   def initialize(diary, opts)
-    @diary        = diary
+    @diary, @location = diary, opts[:in]
 
     @attributes   = {}
-    @location     = opts[:in] # || ''
-
-    @reader = if reader = opts[:reader]
-          reader.new self
-        else
-          self.class.reader.new self
-        end
+    @reader = (opts[:reader] || self.class.reader).new self
   end
 
-  attr_reader :diary, :reader, :writer, :attributes, :location, :constructor
+  attr_reader \
+    :diary, :location,
+    :attributes, :reader, :writer, :builder
 
   def subject
     @diary.subject
   end
+
   def [](attribute)
-    @attributes[attribute]
+    @attributes[ attribute ] or raise NoMethodError, attribute.to_s
   end
   def reading(attribute)
     @attributes[attribute].reading
   end
-  def writing(attribute)
+  def reading(attribute)
     @attributes[attribute].writing
   end
 
