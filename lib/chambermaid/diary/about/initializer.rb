@@ -7,11 +7,11 @@ class Chambermaid::Diary::About::Initializer
   def initialize(attributes)
     @attributes = attributes
   end
-  def attribute(name, filters = '', options = {})
-    @attributes[name] = Attribute.new name, filters.split('.'), options
+  def attribute(name, filters = '', *args)
+    @attributes[name] = Attribute.new name, filters.split('.'), args
   end
-  def map(name, filters = '', options = {})
-    attr = Attribute.new name, filters.split('.'), options
+  def map(name, filters = '', *args)
+    attr = Attribute.new name, filters.split('.'), args
     yield Mapper.new(self, attr)
   end
 

@@ -7,15 +7,6 @@ class Chambermaid::Diary::Page
 
   def initialize(about, tree)
     @about, @loaded, @tree = about, false, tree
-    @builder = @about.builder || proc { |about, tree|
-      instance = about.subject.new
-
-      about.attributes.each do |name, attribute|
-        instance.send "#{ name }=", Context.new(attribute, tree).value
-      end
-
-      instance
-    }
   end
 
   def method_missing(attribute, *args, &block)
@@ -38,15 +29,12 @@ class Chambermaid::Diary::Page
         def #{ method }
           @__context_of_#{ method }.value
         end
-        def #{ method }=(value)
-          @__context_of_#{ method }.value = value
-        end
       DEF
       __instance_variable_set :"@__context_of_#{ method }", context
     end
     def __load_target
       return unless defined? @loaded
-      @target, @loaded = @builder.call(@about, @tree), true
+      @target, @loaded = @about.builder.call(@about, @tree), true
     end
 
 end

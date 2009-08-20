@@ -47,7 +47,7 @@ class Chambermaid::Browser
       end
     end
     def build_diary(path)
-      # init repo on-the-fly
+      # TODO: init repo on-the-fly
       Diary.new @about, Repo.new(path)
     end
 

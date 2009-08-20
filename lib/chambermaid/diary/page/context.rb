@@ -9,9 +9,6 @@ class Chambermaid::Diary::Page::Context
   def value
     @value ||= @attribute[ self ]
   end
-  def value=(value)
-    raise NotImplementedError
-  end
 
   def data
     blob.data

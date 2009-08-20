@@ -6,17 +6,15 @@ class Chambermaid::Diary::Page::Attribute
 
   attr_reader :reading, :writing
 
-  def initialize(name, filters, options)
-    @name, @options, self.filters = name, options, filters
+  def initialize(name, filters, args)
+    @name, @args, self.filters = name, args, filters
   end
   def filename
-    fn, regexp = [ @name ], false
+    fn, regexp = [ @name ], nil
 
     fn += @writing.map do |filter|
-      filter.sub(/:[A-Za-z0-9_]+/) do |s|
-        regexp = true
-        @options.fetch s[ 1.. -1 ].to_sym, '.+'
-      end
+      # TODO: add support for non-Integer values
+      filter.sub('%i') { |s| regexp = '\d+' }
     end
 
     regexp ? /#{ fn * '\\.' }/ : fn.join('.')
