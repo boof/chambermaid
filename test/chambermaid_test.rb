@@ -36,9 +36,9 @@ class TestChambermaid < Test::Unit::TestCase
   def assert_attributes(obj, attrs)
     attrs.each { |attr, expect| assert_equal expect, obj.__send__(attr) }
   end
-  def page
+  def page(n = nil)
     diary = TeaserBrowser.diary 2
-    diary.current_page
+    n ? diary.page(n) : diary.last_page
   end
 
   def test_chambermaid_keeps_browser
@@ -60,7 +60,9 @@ class TestChambermaid < Test::Unit::TestCase
       :url => URI('http://slashdot.org/')
   end
   def test_page_builds_target
-    assert_attributes page.target,
+    teaser = page.target
+    assert_instance_of Teaser, teaser
+    assert_attributes teaser,
       :content => 'Content',
       :headline => 'Headline',
       :url => URI('http://slashdot.org/')
