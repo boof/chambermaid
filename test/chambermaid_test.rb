@@ -36,9 +36,12 @@ class TestChambermaid < Test::Unit::TestCase
   def assert_attributes(obj, attrs)
     attrs.each { |attr, expect| assert_equal expect, obj.__send__(attr) }
   end
-  def page(diary, n = nil)
-    diary = TeaserBrowser.diary diary
-    n ? diary.page(n) : diary.last_page
+  def page(n, sha1 = nil)
+    diary = TeaserBrowser.diary n
+    sha1 ? diary.page(sha1) : diary.last_page
+  end
+  def page_count(teaser)
+    TeaserBrowser.find(teaser).pages.length
   end
 
   def test_chambermaid_keeps_browser
@@ -75,7 +78,9 @@ class TestChambermaid < Test::Unit::TestCase
     teaser = page(2).target
     teaser.headline = 'Another Headline'
 
-    Chambermaid.write teaser
+    expected_length = page_count(teaser) + 1
+    sha1 = Chambermaid.write teaser
+    assert_equal expected_length, page_count(teaser)
   end
 
   def test_teaser_creates_new_repository
@@ -87,7 +92,9 @@ class TestChambermaid < Test::Unit::TestCase
       Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
     DOC
 
-    Chambermaid.write teaser
+    assert_nil TeaserBrowser.find(teaser)
+    sha1 = Chambermaid.write teaser
+    assert_instance_of Diary, TeaserBrowser.find(teaser)
   end
 
 end
