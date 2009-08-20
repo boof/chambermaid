@@ -1,24 +1,32 @@
 module Chambermaid
   autoload :Diary, __FILE__.insert(-4, '/diary')
+  autoload :Browser, __FILE__.insert(-4, '/browser')
 
-  @diaries = {}
+  @browser = {}
   def self.keep_diary(subject, opts = {})
-    diary = Diary.new subject, opts
-    @diaries[ subject.name ] = diary
+    browser_class = opts.delete(:browser) || Browser
+    @browser[ subject.name ] = browser_class.new subject, opts
 
-    load "#{ File.join diary.about.location, 'init.rb' }"
-
-    diary
+    ascribe subject
   end
 
-  def self.diary(subject)
-    @diaries[ subject.name ]
+  class << self
+    def browser(subject)
+      @browser.fetch subject.name
+    end
+    alias_method :[], :browser
   end
-  def self.about(subject)
-    diary(subject).about
-  end
-  def self.draft(subject, &block)
-    about(subject).draft(&block)
+
+  def self.ascribe(subject)
+    subject_browser = browser subject
+    return yield subject_browser.initializer if block_given?
+
+    begin
+      init_rb = File.join subject_browser.location, 'init.rb'
+      load init_rb
+    rescue TypeError
+      raise 'root not specified'
+    end
   end
 
 end

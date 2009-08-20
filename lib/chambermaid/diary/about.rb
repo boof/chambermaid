@@ -1,36 +1,29 @@
 class Chambermaid::Diary::About
-  autoload :Draft, __FILE__.insert(-4, '/draft')
-  autoload :Reader, __FILE__.insert(-4, '/readers')
-  autoload :CachedReader, __FILE__.insert(-4, '/readers')
+  autoload :Initializer, __FILE__.insert(-4, '/initializer')
 
-  class << self; attr_accessor :reader end
-  self.reader = Reader
-
-  def initialize(diary, opts)
-    @diary, @location = diary, opts[:in]
-
-    @attributes   = {}
-    @reader = (opts[:reader] || self.class.reader).new self
+  def initialize(subject, opts)
+    @subject_name, @location = subject.name, opts[:in]
   end
 
-  attr_reader \
-    :diary, :location,
-    :attributes, :reader, :writer, :builder
+  attr_reader :location, :attributes, :reader, :builder
 
   def subject
-    @diary.subject
+    Object.const_get @subject_name
   end
 
-  def [](attribute)
-    @attributes[ attribute ] or
-        raise NameError, "attribute #{ attribute } is not defined"
-  end
-  def reading(attribute)
-    @attributes[attribute].reading
+  def initializer
+    @initializer ||= Initializer.new @attributes ||= {}
   end
 
-  def draft
-    yield Draft.new(@attributes = {})
+  def attribute(attr)
+    @attributes.fetch attr
+  rescue IndexError
+    raise NameError, "attribute #{ a } is not defined"
+  end
+  alias_method :[], :attribute
+
+  def reading(attr)
+    attribute(attr).reading
   end
 
 end

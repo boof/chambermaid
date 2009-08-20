@@ -6,9 +6,9 @@ class Chambermaid::Diary::Page::Attribute
       @draft, @attribute = draft, attribute
     end
 
-    def reader(attribute, &reader)
+    def reads(attribute, &reader)
       @draft.attributes[attribute] ||= Mapping.new @attribute
-      @draft.attributes[attribute].reader &reader
+      @draft.attributes[attribute].reads &reader
     end
 
   end
@@ -19,7 +19,7 @@ class Chambermaid::Diary::Page::Attribute
       @attribute = attribute
     end
 
-    def reader(&reader)
+    def reads(&reader)
       @reader = reader
     end
 

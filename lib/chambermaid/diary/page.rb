@@ -1,6 +1,3 @@
-require 'rubygems'
-require 'grit'
-
 class Chambermaid::Diary::Page
   autoload :Attribute, __FILE__.insert(-4, '/attribute')
   autoload :Context, __FILE__.insert(-4, '/context')
@@ -8,10 +5,8 @@ class Chambermaid::Diary::Page
   alias_method :__instance_variable_set, :instance_variable_set
   instance_methods.each { |meth| undef_method(meth) unless meth =~ /\A__/ }
 
-  include Grit
-
-  def initialize(about, path)
-    @about, @loaded, @repository = about, false, Repo.new(path)
+  def initialize(about, tree)
+    @about, @loaded, @tree = about, false, tree
     @builder = @about.builder || proc { |about, tree|
       instance = about.subject.new
 
@@ -24,7 +19,7 @@ class Chambermaid::Diary::Page
   end
 
   def method_missing(attribute, *args, &block)
-    context = Context.new @about[attribute], @repository.tree
+    context = Context.new @about[attribute], @tree
     __bind_context attribute, context
     context.value
   end
@@ -51,7 +46,7 @@ class Chambermaid::Diary::Page
     end
     def __load_target
       return unless defined? @loaded
-      @target, @loaded = @builder.call(@about, @repository.tree), true
+      @target, @loaded = @builder.call(@about, @tree), true
     end
 
 end

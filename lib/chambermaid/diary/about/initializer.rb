@@ -1,4 +1,4 @@
-class Chambermaid::Diary::About::Draft
+class Chambermaid::Diary::About::Initializer
   Attribute = Chambermaid::Diary::Page::Attribute
   Mapper = Attribute::Mapper
 

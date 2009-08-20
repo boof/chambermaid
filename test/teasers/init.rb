@@ -1,12 +1,12 @@
-Chambermaid.draft Teaser do |about|
+Chambermaid.ascribe Teaser do |has|
 
-  about.attribute :id, 'int.:id', :id => /\d+/
-  about.attribute :content, 'txt'
+  has.attribute :id, 'int.:id', :id => /\d+/
+  has.attribute :content, 'txt'
 
-  about.map :meta, 'yml' do |meta|
-    meta.reader(:headline) { |meta| meta['headline'] }
+  has.map :meta, 'yml' do |meta|
+    meta.reads(:headline) { |meta| meta['headline'] }
   end
 
-  about.attribute :url, 'uri'
+  has.attribute :url, 'uri'
 
 end

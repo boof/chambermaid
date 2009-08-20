@@ -21,8 +21,8 @@ class Chambermaid::Diary::About
           end
         end
       end
-      def build_page(path)
-        Page.new @about, path
+      def build_page(path, commit = 'master')
+        Page.new @about, Repo.new(path).tree(commit)
       end
 
   end
