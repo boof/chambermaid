@@ -1,9 +1,9 @@
 Chambermaid.ascribe Teaser do |has|
 
   has.attribute :id, 'int.%i', :id
-  has.attribute :content, 'txt'
+  has.attribute :content
 
-  has.map :meta, 'yml' do |meta|
+  has.map :meta do |meta|
     meta.reads(:headline) { |meta| meta['headline'] }
   end
 

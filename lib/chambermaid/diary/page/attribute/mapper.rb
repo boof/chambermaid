@@ -19,16 +19,16 @@ class Chambermaid::Diary::Page::Attribute
       @attribute = attribute
     end
 
+    def name
+      @attribute.name
+    end
+
     def reads(&reader)
       @reader = reader
     end
 
     def [](context)
       @reader.call @attribute[context]
-    end
-
-    def filename
-      @attribute.filename
     end
 
   end

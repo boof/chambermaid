@@ -25,10 +25,10 @@ class Chambermaid::Diary::Page::Context
 
     def blob
       @blob ||= begin
-        case filename = @attribute.filename
-        when String; @tree / filename
-        when Regexp; @tree.contents.find { |o| o.name =~ filename }
-        end
+        filename  = "#{ @attribute.name }."
+        length    = filename.length
+
+        @tree.contents.find { |o| o.name[ 0, length ] == filename }
       end
     end
 
