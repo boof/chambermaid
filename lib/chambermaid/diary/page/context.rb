@@ -25,10 +25,10 @@ class Chambermaid::Diary::Page::Context
 
     def blob
       @blob ||= begin
-        filename  = "#{ @attribute.name }."
-        length    = filename.length
+        prefix  = "#{ @attribute.name }."
+        n       = prefix.length
 
-        @tree.contents.find { |o| o.name[ 0, length ] == filename }
+        @tree.contents.find { |o| o.name[0, n] == prefix }
       end
     end
 
