@@ -6,13 +6,16 @@ class Chambermaid::Diary::Page
   instance_methods.each { |meth| undef_method(meth) unless meth =~ /\A__/ }
 
   def initialize(about, tree)
-    @about, @loaded, @tree = about, false, tree
+    @about, @tree, @loaded = about, tree, nil
   end
 
   def method_missing(attribute, *args, &block)
     context = Context.new @about[attribute], @tree
     __bind_context attribute, context
     context.value
+
+  rescue NameError
+    target.send attribute, *args, &block
   end
 
   def target
@@ -33,8 +36,8 @@ class Chambermaid::Diary::Page
       __instance_variable_set :"@__context_of_#{ method }", context
     end
     def __load_target
-      return unless defined? @loaded
-      @target, @loaded = @about.builder.call(@about, @tree), true
+      return if @loaded
+      @target = @loaded = @about.builder.call @about, @tree
     end
 
 end

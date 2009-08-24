@@ -70,8 +70,12 @@ class TestChambermaid < Test::Unit::TestCase
       :headline => 'Headline',
       :url => URI('http://slashdot.org/')
   end
+
   def test_missing_attribute_raises_name_error
-    assert_raises(NameError) { page(2).undefined }
+    assert_raises(NoMethodError) { page(2).undefined }
+  end
+  def test_page_delegates_methods
+    assert_nothing_raised { page(2).to_s }
   end
 
   def test_teaser_creates_new_page
@@ -79,8 +83,10 @@ class TestChambermaid < Test::Unit::TestCase
     teaser.headline = 'Another Headline'
 
     expected_length = page_count(teaser) + 1
-    sha1 = Chambermaid.write teaser
+    page = Chambermaid.write teaser
     assert_equal expected_length, page_count(teaser)
+
+    Chambermaid.write page.previous.target
   end
 
   def test_teaser_creates_new_repository
@@ -88,12 +94,10 @@ class TestChambermaid < Test::Unit::TestCase
     teaser.id = 1
     teaser.headline = 'Create a new repository!'
     teaser.url = URI 'http://www.git-scm.org'
-    teaser.content = <<-DOC
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-    DOC
+    teaser.content = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
 
     assert_nil TeaserBrowser.find(teaser)
-    sha1 = Chambermaid.write teaser
+    page = Chambermaid.write teaser
     assert_instance_of Diary, TeaserBrowser.find(teaser)
   end
 
