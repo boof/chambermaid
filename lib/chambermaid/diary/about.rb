@@ -4,7 +4,8 @@ class Chambermaid::Diary::About
 
   def initialize(subject, opts)
     @subject_name, @attributes = subject.name, {}
-    @location, @builder = opts[:in], opts[:builder] || proc { |about, tree|
+    @as = opts.fetch :as
+    @location, @reader = opts[:in], opts[:reader] || proc { |about, tree|
       obj = about.subject.new
       about.attributes.
           each { |n, attr| obj.send "#{ n }=", Context.new(attr, tree).value }
@@ -12,7 +13,7 @@ class Chambermaid::Diary::About
     }
   end
 
-  attr_reader :location, :attributes, :builder
+  attr_reader :location, :as, :attributes, :reader
 
   def subject
     Object.const_get @subject_name
@@ -23,9 +24,7 @@ class Chambermaid::Diary::About
   end
 
   def attribute(attr)
-    @attributes.fetch attr
-  rescue IndexError
-    raise NameError, "attribute #{ a } is not defined"
+    @attributes[ attr.to_sym ]
   end
   alias_method :[], :attribute
 

@@ -6,30 +6,29 @@ module Chambermaid
 
   class << self
     def keep_diary(subject, opts = {})
-      browser_class = opts.delete(:browser) || Browser
-      @browser[ subject.name ] = browser_class.new subject, opts
+      browser_class   = opts.delete(:browser) || Browser
+      subject_browser = browser_class.new subject, opts
+      @browser[ subject.name ] = subject_browser
 
-      ascribe subject
+      begin
+        load File.join(subject_browser.location, 'init.rb')
+      rescue
+        raise "could not load information about #{ subject.name } diary"
+      end
     end
     def browser(subject)
       @browser.fetch subject.name
     end
     alias_method :[], :browser
+
     def ascribe(subject)
-      subject_browser = browser subject
-      return yield subject_browser.initializer if block_given?
+      yield browser(subject).initializer
+    end
 
-      begin
-        init_rb = File.join subject_browser.location, 'init.rb'
-        load init_rb
-      rescue TypeError
-        raise 'root not specified'
-      end
+    def write(object, note)
+      diary = browser(object.class).find object
+      diary.pages.put object, note
     end
-    def write(object)
-      browser(object.class).find object
-    end
-    
+
   end
-
 end

@@ -1,13 +1,22 @@
 require 'test/unit'
-require 'fileutils'
+
 require 'chambermaid'
 require 'teaser'
+require 'uri'
 
 TeaserBrowser = Chambermaid.browser Teaser
 
+TeaserInstance = Teaser.new 2,
+  :content => 'Content',
+  :headline => 'Headline',
+  :url => URI.parse('http://www.github.com')
+
+# TeaserBrowser.store obj
+page = Chambermaid.write TeaserInstance, 'Ensure a test teaser exists.'
+
+=begin
 module Grit
-  #self.debug = true
-  Git.git_binary = '/opt/local/bin/git'
+  self.debug = true
   class Repo
     def self.init(path)
       ENV['GIT_WORK_TREE'] = path
@@ -25,20 +34,29 @@ Dir.open TeaserBrowser.location do |teasers_dir|
     next unless File.directory? path
 
     Grit::Repo.init(path).instance_eval do
-      add '.'
-      commit_index 'Make files available...'
+      begin
+        add '.'
+        commit_index 'Make files available...'
+        commit = commits('master', 1).first
+        git.tag({}, 'Bookmark')
+        git.branch({}, 'ChapterOne')
+      rescue
+        FileUtils.rm_rf File.join(path, '.git')
+        raise $!
+      end
     end unless File.exists? File.join(path, '.git')
   end
 end
+=end
 
 class TestChambermaid < Test::Unit::TestCase
 
   def assert_attributes(obj, attrs)
     attrs.each { |attr, expect| assert_equal expect, obj.__send__(attr) }
   end
-  def page(n, sha1 = nil)
+  def page(n, *args)
     diary = TeaserBrowser.diary n
-    sha1 ? diary.page(sha1) : diary.last_page
+    diary.page(*args)
   end
   def page_count(teaser)
     TeaserBrowser.find(teaser).pages.length
@@ -56,6 +74,7 @@ class TestChambermaid < Test::Unit::TestCase
     diary.pages.each { |page| assert Chambermaid::Diary::Page === page }
     diary.each_page { |page| assert Chambermaid::Diary::Page === page }
   end
+
   def test_page_delegates_to_target
     assert_attributes page(2),
       :content => 'Content',
@@ -78,9 +97,9 @@ class TestChambermaid < Test::Unit::TestCase
     assert_nothing_raised { page(2).to_s }
   end
 
-  def test_teaser_creates_new_page
+  def test_chambermaid_writes_pages
     teaser = page(2).target
-    teaser.headline = 'Another Headline'
+    teaser.content = 'Another Content'
 
     expected_length = page_count(teaser) + 1
     page = Chambermaid.write teaser
@@ -89,6 +108,24 @@ class TestChambermaid < Test::Unit::TestCase
     Chambermaid.write page.previous.target
   end
 
+  def test_diary_has_chapters
+    diary = TeaserBrowser.diary 2
+    chapter = diary.page('ChapterOne')
+
+    assert diary.chapters.values.include?(chapter)
+    assert_equal diary.page, chapter
+  end
+  def test_diaries_chapter_are_branches
+  end
+  def test_diary_has_bookmarks
+    diary = TeaserBrowser.diary(2)
+    bookmark = diary.page('Bookmark')
+
+    assert diary.bookmarks.values.include?(bookmark)
+    assert_equal diary.page, bookmark
+  end
+  def test_diaries_bookmarks_are_tags
+  end
   def test_teaser_creates_new_repository
     teaser = Teaser.new
     teaser.id = 1

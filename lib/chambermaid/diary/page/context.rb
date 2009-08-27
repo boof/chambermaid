@@ -3,22 +3,19 @@ class Chambermaid::Diary::Page::Context
   attr_reader :attribute, :tree
 
   def initialize(attribute, tree)
-    @attribute, @tree = attribute, tree
+    @attribute, @tree, @loaded = attribute, tree, false
   end
 
   def value
-    @value ||= @attribute[ self ]
+    @attribute.read self unless loaded?
+    @value
+  end
+  def value=(value)
+    @value, @loaded = value, true
   end
 
-  def data
+  def raw
     blob.data
-  end
-  def name
-    blob.name
-  end
-
-  def reading_units
-    name.split('.')[ 1.. -1 ].reverse
   end
 
   protected
@@ -31,5 +28,7 @@ class Chambermaid::Diary::Page::Context
         @tree.contents.find { |o| o.name[0, n] == prefix }
       end
     end
+
+    attr_reader :loaded; alias_method :loaded?, :loaded
 
 end

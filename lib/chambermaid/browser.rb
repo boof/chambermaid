@@ -19,6 +19,11 @@ class Chambermaid::Browser
     @about.initializer
   end
 
+  def find(object)
+    path = File.join location, object.send(@about.as).to_s
+    build_diary path
+  end
+
   def diary(entry)
     path = File.join location, entry.to_s
     build_diary path
@@ -47,8 +52,7 @@ class Chambermaid::Browser
       end
     end
     def build_diary(path)
-      # TODO: init repo on-the-fly
-      Diary.new @about, Repo.new(path)
+      Diary.new @about, Repo.init(path)
     end
 
 end
