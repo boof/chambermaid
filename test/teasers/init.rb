@@ -1,14 +1,16 @@
 Chambermaid.ascribe Teaser do |has|
 
-  has.attribute :id, 'int.%i', :id
-  has.attribute :content
+  has.accessor :id, 'int.%'
+  has.accessor :content
 
 #  has.attribute :image, 'file'
 
   has.map :meta do |meta|
-    meta.reads(:headline) { |meta| meta['headline'] }
+    meta.accessor :headline,
+        :reader => proc { |meta| meta['headline'] },
+        :writer => proc { |meta, teaser| meta['headline'] = teaser.headline }
   end
 
-  has.attribute :url, 'uri'
+  has.accessor :url, 'uri'
 
 end

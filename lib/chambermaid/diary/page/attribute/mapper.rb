@@ -6,29 +6,31 @@ class Chambermaid::Diary::Page::Attribute
       @draft, @attribute = draft, attribute
     end
 
-    def reads(attribute, &reader)
-      @draft.attributes[attribute] ||= Mapping.new @attribute
-      @draft.attributes[attribute].reads &reader
+    def accessor(attribute, blocks = {})
+      @draft.accessors[attribute] = Mapping.new @attribute, blocks
     end
 
   end
 
   class Mapping
 
-    def initialize(attribute)
+    def initialize(attribute, blocks)
       @attribute = attribute
+      @reader = blocks[:reader] ||
+          proc { |mapped| mapped[ @attribute.name ] }
+      @writer = blocks[:writer] ||
+          proc { |mapped| mapped[ @attribute.name ] = }
     end
 
     def name
       @attribute.name
     end
 
-    def reads(&reader)
-      @reader = reader
+    def deserialize(context)
+      @reader.call @attribute.deserialize(context)
     end
-
-    def [](context)
-      @reader.call @attribute[context]
+    def serialize(context)
+      @writer.call
     end
 
   end

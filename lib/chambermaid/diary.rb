@@ -75,36 +75,24 @@ class Chambermaid::Diary
       (n == 1) ? get('HEAD') : entries.last(n)
     end
 
-    def <<(page)
-      head = @repo.head
-      @repo.checkout page.sha1
+    def put(object, message = object.inspect, head = @repo.head.name)
+      current_head, target_head = @repo.head, @repo.branch(head)
+      tree = @repo.tree target_head.commit.id
 
-      @about.attributes.each do |name, attribute|
-        page.__send__
-      end
-      # checkout tree
-      @tree.checkout
-
-      # write object values to repo
-      @about.writer.call
-      # commit written files
-      # read page from commit id
-
-      commit = @repo.head.in_branch(message) do
+      commit = target_head.in_branch message do |repo|
         @about.attributes.each do |name, attribute|
-          attribute.serialize object => @repo
-          @repo.add attribute.path
+          context = Page::Context.new attribute, tree
+          context.value = object.__send__ name
+
+          attribute.serialize context
         end
-      end and @objects = nil
-
-      read commit.id
-
+      end
       invalidate!
-    end
 
-    def put(object, message = object.inspect, commit_id = 'HEAD')
-      self << Page.new(@about, @repo.tree(commit_id), object)
-      last
+      get commit.id
+
+    ensure
+      @repo.git.checkout({}, current_head.name)
     end
 
     protected

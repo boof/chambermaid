@@ -5,9 +5,9 @@ class Chambermaid::Diary::Page
   alias_method :__instance_variable_set, :instance_variable_set
   instance_methods.each { |meth| undef_method(meth) unless meth =~ /\A__/ }
 
-  def initialize(about, tree, subject = nil)
+  def initialize(about, tree)
     @about, @tree = about, tree
-    @loaded = @subject = subject
+    @loaded = @subject = nil
   end
 
   # Delegates call to loaded subject. Unless loaded tries to read or write the
@@ -42,10 +42,6 @@ class Chambermaid::Diary::Page
   # Returns next page or nil when it does not exist.
   def next
     raise NotImplementedError, 'next is not implemented'
-  end
-
-  def sha1
-    @tree.id
   end
 
   protected

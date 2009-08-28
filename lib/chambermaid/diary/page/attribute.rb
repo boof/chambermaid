@@ -7,39 +7,46 @@ class Chambermaid::Diary::Page::Attribute
   attr_reader :name, :filters
   alias_method :to_s, :name
 
-  def initialize(name, filters, args)
-    @name, @args, @filters = name, args, filters
+  def initialize(name, filters)
+    @name, @filters = name, filters
   end
-  def read(context)
-    context.value = context.name.split('.')[ 1.. -1 ].reverse.
+  def deserialize(context)
+    applied_filters = blob_name(context).split('.')[ 1.. -1 ].reverse
+    context.value = applied_filters.
         inject(nil) { |last, unit| Reading[ unit ][ context, last ] }
   end
-  def write(context)
-    delete context if blob and name_will_change? || value.nil?
-    create context if value
+  def serialize(context)
+    old_name = blob_name context
+    new_name = generate_name context
 
-    context.writing_units.
-        inject(nil) { |last, unit| Writing[ unit ][ context, last ] }
+    context.repo.remove old_name if old_name != new_name
+    return unless context.value
+
+    path = File.join context.repo.working_dir, new_name
+    File.open path, 'w' do |file|
+      file << filters.inject(context.value) { |last, unit|
+        Writing[ unit ][ context, last ] }
+    end
+    context.repo.add new_name
   end
 
-  def delete(context)
-    raise NotImplementedError, "delete #{ name }"
-  end
-  def create(context)
-    raise NotImplementedError, "create #{ name_from_value }"
+  def delete(old_name)
+    raise NotImplementedError, "delete #{ old_name }"
   end
 
-  def name_from_blob(context)
-    context.blob.name
+  def blob_name(context)
+    context.blob.name if context.blob
   end
-  def name_from_value(context)
+  def generate_name(context)
     filters = []
 
-    return unless @filters.all? { |u|
-      if not match = /:(.*)/.match(u)
+    return false unless @filters.all? { |u|
+      if not match = /%/.match(u)
         filters << u
-      elsif context.value and match[1] == @name
+      elsif context.value
         filters << context.value
+      else
+        raise NameError, 'variable name expects value'
       end
     }
 

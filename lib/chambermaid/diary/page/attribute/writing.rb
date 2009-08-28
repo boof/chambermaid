@@ -1,8 +1,6 @@
 class Chambermaid::Diary::Page::Attribute
   class Writing < Filter
 
-    to_s = proc
-
     new :txt do |context, value|
       value.to_s
     end
