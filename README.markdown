@@ -17,7 +17,9 @@ coming soon...
 
 TODO
 ----
-* Documentation
-* support for submodules
-* diary creation
-* snapshot creation
+* Documentation (partially)
+* support for submodules still need observer and hooks
+* snapshot creation partially implemented, depends on support for submodules
+* speedup for class creation
+* reduce numbed of context specific, generated classes
+* replace context object stub (currenly ostruct) with instance of real class
