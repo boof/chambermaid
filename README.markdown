@@ -13,7 +13,7 @@ your ruby object.
 Introduction
 ------------
 
-coming soon...
+For now, see test/*.
 
 TODO
 ----
@@ -23,3 +23,4 @@ TODO
 * speedup for class creation
 * reduce numbed of context specific, generated classes
 * replace context object stub (currenly ostruct) with instance of real class
+* implement locking mechanism when reading/writing
