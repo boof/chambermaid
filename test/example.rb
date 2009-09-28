@@ -15,7 +15,7 @@ class Example
   def <<(example)
     @children.push example
   end
-  attr_reader :id, :name, :children
+  attr_accessor :id, :name, :children
 
 end
 
@@ -23,9 +23,10 @@ Chambermaid.describe Example do |desc|
   root = File.join File.dirname(__FILE__), 'tmp'
 
   desc.root root, '%s', :id
-  desc.attr_accessor :id, :name, :children
+  desc.attr_reader :id, :name, :children
 
   desc.serializer :example => <<-RUBY
+    File.directory? __path or FileUtils.mkdir_p __path
     set(:id, example.id).write
     set(:name, example.name).write
     set(:children, example.children).write

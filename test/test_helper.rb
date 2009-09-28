@@ -1,5 +1,7 @@
 require 'pp'
 require 'test/unit'
+require 'profiler'
+
 require 'rubygems'
 require 'chambermaid'
 

@@ -1,41 +1,28 @@
 require 'enumerator'
 require 'fileutils'
 require 'forwardable'
+require 'ostruct'
+
+# require 'rubygems'
+require 'active_support/inflector'
 require 'grit'
 
+require 'vendor/IniFile/lib/ini_file'
+
 module Chambermaid
-
-  CLASSNAMES  = {}
-
-  build_hash = proc {
-    Hash.new do |hash, name|
-      class_instance = name.split('::').
-          inject(Object) { |parent, name| parent.const_get name }
-
-      hash[ class_instance.superclass.name ]
-    end
-  }
-
-  BROWSERS    = build_hash.call
-  DIARIES     = build_hash.call
-  CHAPTERS    = build_hash.call
-  PAGES       = build_hash.call
 
    # Loads multiple files from this directory.
   def self.require_each(*libs)
     libs.each { |lib| require __FILE__.insert(-4, "/#{ lib }") }
   end
-  # Underscores camelcased word.
-  def self.underscore(object)
-    camel_cased_word = "#{ object }"
-    camel_cased_word.gsub!('::', '/')
-    camel_cased_word.gsub!(/([A-Z]+)([A-Z][a-z])/, '\1_\2')
-    camel_cased_word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
-    camel_cased_word.tr!('-', '_')
-    camel_cased_word.downcase!
 
-    camel_cased_word
+  def self.each_context
+    [ :Browser, :Diary, :Chapter, :Page ].each { |ctx| yield ctx }
   end
+  each_context do |c|
+    const_set c, Hash.new { |h, n| h[ "#{ n }".constantize.superclass.name ] if n != 'Object' }
+  end
+  EXTNAME_TO_CLASSNAME  = {}
 
   def self.class_name(object)
     object = object.class unless Class === object
@@ -44,10 +31,10 @@ module Chambermaid
 
   def self.describe(object, opts = {})
     name = class_name object
-    extname = opts.fetch :as, underscore(name)
+    extname = opts.fetch :as, name.underscore
 
     if extname
-      CLASSNAMES[extname] = name
+      EXTNAME_TO_CLASSNAME[extname] = name
       extname = ".#{ extname }"
     end
 
@@ -55,67 +42,30 @@ module Chambermaid
   end
 
   def self.browser(object)
-    BROWSERS[ class_name(object) ].new
+    if browser = Browser[ class_name(object) ] then browser.new end
   end
   def self.diary(object)
-    browser(object).diary object
+    if browser = browser(object) then browser.diary object end
   end
-
-  def self.blank_page(object)
-    PAGES[ class_name(object) ]
-  end
-
   def self.write(object, message = object.inspect)
-    browser(object.class).save object, message
+    if browser = browser(object) then browser.store object, message
+    else
+      raise ArgumentError
+    end
   end
 
   private
 
-    def self.build_mclass(name, extname)
-      Class.new Module do
-        def included(base)
-          @on_include.each { |block| block[base] }
-        end
-        def on_include(&block)
-          @on_include << block
-        end
-        define_method :initialize do
-          @on_include = []
-          const_set :CLASSNAME, name
-          const_set :EXTNAME, extname
-        end
-      end
-    end
-    def self.describe_modules(name, extname)
-      mclass    = build_mclass name, extname
-      contexts  = %w[ Browser Diary Chapter Page ].map! { |k| k.to_sym }
-      modules   = contexts.inject({}) { |m, k| m.update k => mclass.new }
-      describer = Describer.new modules.values_at(*contexts)
+    def self.create_contexts(name, extname, &block)
+      classes = Builder.evaluate name, extname, &block
 
-      yield describer
-
-      modules
-    end
-    def self.create_contexts(name, extname)
-      modules = describe_modules(name, extname) { |desc| yield desc }
-
-      {
-        :Browser  => BROWSERS,
-        :Diary    => DIARIES,
-        :Chapter  => CHAPTERS,
-        :Page     => PAGES
-      }.
-      each do |ctx, hash|
-        ctx_class, ctx_module = const_get(ctx).clone, modules[ctx]
-        ctx_class.class_eval { include ctx_module }
-
-        hash[name] = const_set "#{ name }#{ ctx }", ctx_class
+      each_context do |c|
+        const_get(c)[name] = const_set "#{ name }#{ c }", classes[c]
       end
     end
 
 end
 
-Chambermaid.require_each 'basic_object', 'browser', 'timestamped',
-    'diary', 'diary/chapters', 'diary/chapter',
-    'diary/chapter/pages', 'diary/chapter/page',
-    'describer', 'core_descriptions'
+Chambermaid.require_each 'blank_slate', 'ini',
+    'interfaces', 'types', 'builder',
+    'git_dir', 'references', 'collectors'

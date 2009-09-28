@@ -1,16 +1,17 @@
-module Chambermaid
-  class Diary
+module Chambermaid::Interfaces
+  module Diary
     include Grit
+
     extend Forwardable
     def_delegators :@repository, :tree
-    attr_reader :chapters, :path, :repository
+    attr_reader :chapters, :path
 
     def initialize(path)
       # TODO: this should work a little bit more like a page
       @path = path
       initialize_repository
 
-      @chapters = Chapters.new self, CHAPTERS[CLASSNAME]
+      @chapters = Chambermaid::Collectors::Chapters.new self
     end
 
     # Returns true if this diary is new. I.g. this means that the
@@ -40,12 +41,23 @@ module Chambermaid
       pages.current
     end
 
+    def repository
+      @repository ||= Repo.new @path
+    end
+
     protected
 
-      # Creates directories and git repository.
-      def initialize_repository
+      def initialize_directory
         FileUtils.mkdir_p @path unless File.directory? @path
-        @repository = Repo.init @path
+        initialize_git
+      end
+      def initialize_git
+        path = File.join @path, '.git'
+        Chambermaid::GitDir.create path unless File.directory? path
+      end
+      def initialize_repository
+        initialize_directory
+        initialize_git
       end
 
   end
