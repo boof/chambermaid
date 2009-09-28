@@ -1,0 +1,3 @@
+[submodule "lib/vendor/IniFile"]
+	path = lib/vendor/IniFile
+	url = git://github.com/boof/IniFile.git
