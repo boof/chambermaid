@@ -20,7 +20,8 @@ TODO
 * Documentation (partially)
 * support for submodules still need observer and hooks
 * snapshot creation partially implemented, depends on support for submodules
-* speedup for class creation
+* speedup/cleanup for class creation
 * reduce numbed of context specific, generated classes
 * replace context object stub (currenly ostruct) with instance of real class
 * implement locking mechanism when reading/writing
+* implement more types (symbol, file, complex, ...)

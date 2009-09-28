@@ -50,8 +50,8 @@ module Chambermaid
       instance = new name, extname
       yield instance
 
-      instance.evaluate
       instance.auto_complete
+      instance.evaluate
 
       instance.classes
     end
@@ -60,16 +60,17 @@ module Chambermaid
       @name, @extname = name, extname
       @classes = Hash.new { |h, k| h[k] = build_class k }
 
-      browser = ::Chambermaid.apply :browser, @classes[:Browser]
-      diary = ::Chambermaid.apply :diary, @classes[:Diary]
+      @browser_evals, @diary_evals, @chapter_evals, @page_evals = '', '', '', ''
+      browser   = Chambermaid.apply :browser, @classes[:Browser]
+      diary     = Chambermaid.apply :diary, @classes[:Diary]
+      chapter   = Chambermaid.apply :chapter, @classes[:Chapter]
+      page      = Chambermaid.apply :page, @classes[:Page]
+      frontpage = Chambermaid.apply :frontpage, Class.new(page)
       browser.const_set :Diary, diary
-      chapter = ::Chambermaid.apply :chapter, @classes[:Chapter]
       diary.const_set :Chapter, chapter
-      page = ::Chambermaid.apply :page, @classes[:Page]
-      page.class_eval "def __extname; '#{ @extname }' end"
       chapter.const_set :Page, page
-      frontpage = ::Chambermaid.apply :frontpage, Class.new(page)
       chapter.const_set :Frontpage, frontpage
+      page_eval "def __extname; '#{ @extname }' end"
 
       @auto_complete = {
         :builder => AUTO_COMPLETE_BUILDER,
@@ -78,20 +79,23 @@ module Chambermaid
     end
 
     def evaluate
-      # TODO: Evaluate runtime generated code here!
+      @classes[:Browser].class_eval @browser_evals
+      @classes[:Diary].class_eval @diary_evals
+      @classes[:Chapter].class_eval @chapter_evals
+      @classes[:Page].class_eval @page_evals
     end
 
-    def browser_eval(*codes, &block)
-      classes[:Browser].class_eval(*codes, &block)
+    def browser_eval(code)
+      @browser_evals << "#{code}\n"
     end
-    def diary_eval(*codes, &block)
-      classes[:Diary].class_eval(*codes, &block)
+    def diary_eval(code)
+      @diary_evals << "#{code}\n"
     end
-    def chapter_eval(*codes, &block)
-      classes[:Chapter].class_eval(*codes, &block)
+    def chapter_eval(code)
+      @chapter_evals << "#{code}\n"
     end
-    def page_eval(*codes, &block)
-      classes[:Page].class_eval(*codes, &block)
+    def page_eval(code)
+      @page_evals << "#{code}\n"
     end
 
     def root(root_path, *args)
@@ -126,13 +130,13 @@ module Chambermaid
 
     def builder(method = nil, &block)
       case method
-      when Symbol
-        classes[:Page].on_include { |base|
-            base.class_eval { alias __build method } }
+#      when Symbol
+#        classes[:Page].on_include { |base|
+#            base.class_eval { alias __build method } }
       when String
         page_eval DEF_BUILDER % method
       else
-        page_eval { define_method :__build, &block }
+        @classes[:Page].class_eval { define_method :__build, &block }
       end
       @auto_complete.delete :builder
     end
@@ -143,7 +147,7 @@ module Chambermaid
           method_def.values.first
         ]
       else
-        page_eval { define_method :__serialize, &block }
+        @classes[:Page].class_eval { define_method :__serialize, &block }
       end
       @auto_complete.delete :serializer
     end
